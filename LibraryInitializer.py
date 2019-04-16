@@ -19,7 +19,7 @@ Planned Features:
 6. Play options - Shuffle, Random, By genre, By Artist
 
 Features Implemented:
-
+1. File Organizer: The Library class has an organize function that will organize the file directory given as the home with the artist and albums.
 '''
 
 
