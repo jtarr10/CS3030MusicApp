@@ -20,6 +20,8 @@ Planned Features:
 
 Features Implemented:
 1. File Organizer: The Library class has an organize function that will organize the file directory given as the home with the artist and albums.
+    a. Organizing the File directory and saving the final location
+    b. Library Stat Database Created
 '''
 
 
@@ -153,10 +155,7 @@ class Library:
             #if there is no directories available to sort the song, one is created
             if(not os.path.exists(artistDir)):
                 os.mkdir(artistDir)
-                if(not os.path.exists(albumDir)):
-                    os.mkdir(albumDir)
-            else:
-                if(not os.path.exists(albumDir)):
+            if(not os.path.exists(albumDir)):
                     os.mkdir(albumDir)
 
             #move the song to the proper location and move on to the next song
