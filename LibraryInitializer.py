@@ -27,6 +27,63 @@ import mutagen
 import os
 import re
 import shutil
+import shelve
+import json
+
+
+class Database:
+    ''' Database format - songs
+    {'location': '', 'lastID': '0',
+     'songs': { 'song/path' : {'id': '', 'title': 'string', 'artist' : 'string', 'album': 'string'}}}
+    '''
+
+    ''' Database format - statistics 
+    {'id' : {keys to be decided}}
+    '''
+
+    def __init__(self, path):
+        self.location = path
+        self.data = os.path.abspath(self.location + os.sep + 'songs')
+        self.stats = os.path.abspath(self.location + os.sep + 'statistics')
+        self.dataFile, self.statsFile = self.loadDatabase()
+        self.lastID = self.dataFile['lastID']
+
+    # loads the database from file or initializes it if does not exist
+    def loadDatabase(self):
+        try:
+            dataFile = shelve.open(self.data)
+            statsFile = shelve.open(self.stats)
+            dataFile['lastID']
+        except Exception as e:
+            dataFile['lastID'] = 0
+            dataFile['location'] = self.location
+            dataFile['songs'] = {}
+
+        return dataFile, statsFile
+
+    # adds a song to the database using the path as a unique identifier
+    def addSongToDatabase(self, songObj):
+        if not songObj.path in self.dataFile['songs']:
+            load = self.dataFile['songs']
+            dataDict = songObj.songToDict()
+            dataDict['id'] = self.lastID + 1
+            load[songObj.path] = dataDict
+            self.dataFile['songs'] = load
+            load = self.dataFile['lastID']
+            load = self.lastID + 1
+            self.dataFile['lastID'] = load
+
+    # removes a song from the database given a songs identifier (path)
+    def removeFromDatabase(self, path):
+        data = self.dataFile['songs']
+        if path in data:
+            del data[path]
+            self.dataFile['songs'] = data
+
+    # closes the database files
+    def closeDatabase(self):
+        self.dataFile.close()
+        self.statsFile.close()
 
 #The song object holds the metadata of each individual song file scanned
 class Song:
@@ -38,12 +95,17 @@ class Song:
         self.album = self.ms['album'][0]
         self.path = os.path.join(root, file)
         self.filename = file
+        #self.identifier = re.sub(r'[^A-Za-z0-9]', '', self.title + self.artist + self.album, )
+
+    # returns the songs meta data as a dictionary
+    def songToDict(self):
+        return {'title' : self.title, 'artist' : self.artist, 'album' : self.album, 'id': 0}
 
 
 #The library houses all the data and methods needed for manipulating the library
 class Library:
 
-    def __init__(self, homeDir, filePattern='(.*)(.mp3|.flac|.wav|.ogg|.m4a|.m4b|.m4p)'):
+    def __init__(self, homeDir, filePattern='(.*)(.mp3|.flac|.wav|.ogg|.m4a|.m4b|.m4p|.mp4)'):
         self.homeDirectory = homeDir
         self.songFileRE = re.compile(filePattern)
         self.songs = []
@@ -83,7 +145,7 @@ class Library:
         #increment through all songs and organize them
         for song in self.songs:
             #Initialize the directories needed to build the organization tree
-            
+
             artistDir = os.path.join(self.homeDirectory, song.artist)
             albumDir = os.path.join(artistDir, song.album)
             songDir = os.path.join(albumDir, song.filename)
