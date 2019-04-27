@@ -130,6 +130,8 @@ class Library:
     #The organize method will move all files into a typical artist based directory organization
     def organize(self):
         print('Reorganizing library directories')
+
+        data = Database(self.homeDirectory)
         
         #move all files to the root directory
         for song in self.songs:
@@ -160,9 +162,15 @@ class Library:
 
             #move the song to the proper location and move on to the next song
             shutil.move(song.path, songDir)
+            # add song to database
+            data.addSongToDatabase(song)
         
         #Finally update the song list to reflect the final directory layout
         self.update()
+
+        # release the database
+        data.closeDatabase()
+
         print('Finished Reoganization...')
         
 
