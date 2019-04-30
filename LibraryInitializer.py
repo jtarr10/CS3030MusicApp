@@ -36,6 +36,10 @@ import shelve
 import json
 import bs4
 import musicbrainzngs
+import pyacoustid
+
+
+acousticAPIKey = 'FCX67RczyA'
 
 class Database:
     ''' Database format - songs
@@ -165,7 +169,7 @@ class Song:
 #The library houses all the data and methods needed for manipulating the library
 class Library:
 
-    def __init__(self, homeDir, filePattern='(.*)(.mp3|.flac|.wav|.ogg|.m4a|.m4b|.m4p|.mp4)'):
+    def __init__(self, homeDir, filePattern='(.*)(.mp3|.flac|.wav|.ogg|.m4a|.m4b|.m4p|.mp4)$'):
         self.homeDirectory = homeDir
         self.songFileRE = re.compile(filePattern)
         self.songs = []
