@@ -36,7 +36,6 @@ import shelve
 import json
 import bs4
 import musicbrainzngs
-import pyacoustid
 
 
 acousticAPIKey = 'FCX67RczyA'
@@ -156,7 +155,7 @@ class Song:
                 hasImage = False
 
             if(release['artist-credit-phrase'] == self.artist and hasImage):
-                print('Image match found!')
+                print('Release match found!')
                 return release['id']
 
         #if nothing is returned we print to a notification to console
@@ -172,6 +171,7 @@ class Library:
     def __init__(self, homeDir, filePattern='(.*)(.mp3|.flac|.wav|.ogg|.m4a|.m4b|.m4p|.mp4)$'):
         self.homeDirectory = homeDir
         self.songFileRE = re.compile(filePattern)
+        self.artworkDirRE = re.compile('^(.*)--$')
         self.songs = []
         print('Scanning Files in Library...')
         self.update()
@@ -191,7 +191,6 @@ class Library:
 
 
     #The organize method will move all files into a typical artist based directory organization
-    #DO NOT RUN THIS AFTER ALBUM ARTWORK DIRECTORIES HAVE BEEN CREATED
     def organize(self):
         print('Reorganizing library directories')
 
@@ -201,10 +200,12 @@ class Library:
         for song in self.songs:
             shutil.move(song.path, os.path.join(self.homeDirectory, song.filename))
 
-        #delete all the child directories
+        #delete all the child directories except the folder holding album artwork
         for root, dirs, files in os.walk(self.homeDirectory):
             for dir in dirs:
-                shutil.rmtree(os.path.join(root, dir))
+                temp = self.artworkDirRE.search(os.path.join(root, dir))
+                if(temp == None):
+                    shutil.rmtree(os.path.join(root, dir))
                 
                 
         #we update the song list
@@ -243,12 +244,15 @@ class Library:
         print('Searching Music Brainz database for album artwork\n This could take several minutes...')
         for song in self.songs:
            
-            artworkFolder = os.path.join(song.path.rstrip(song.filename), 'artwork')
-            song.artworkPath = os.path.join(artworkFolder, song.album + '.jpg')
+            artworkFolder = os.path.join(self.homeDirectory, 'Album Artwork--')
+            artistFolder = os.path.join(artworkFolder, song.artist + '--')
+            song.artworkPath = os.path.join(artistFolder, song.album + '.jpg')
 
             #if album artwork already exists, we continue to the next song
             if(not os.path.exists(artworkFolder)):
                 os.mkdir(artworkFolder)
+            if(not os.path.exists(artistFolder)):
+                os.mkdir(artistFolder)
             
             if(not os.path.exists(song.artworkPath)):
                 print('Searching: {}'.format(song.album))
@@ -291,5 +295,6 @@ answer = input()
 if(answer == 'Y' or answer == 'y'):
     myLibrary.getAlbumArtwork()
     answer = ''
+    print('Program Finished...')
 else:
     print('Program Finished...')
