@@ -22,6 +22,9 @@ Features Implemented:
 1. File Organizer: The Library class has an organize function that will organize the file directory given as the home with the artist and albums.
     a. Organizing the File directory and saving the final location
     b. Library Stat Database Created
+2.Interface with Music Brainz Database
+    a. getAlbumArtwork method populates all possible album folders with available online album artwork files
+    b. getMusicBrainzReleaseID method will search Music Brainz database for the correct album id. This is stored in song object's MBID attribute and used to look up the album using MB functions.
 '''
 
 
@@ -31,7 +34,8 @@ import re
 import shutil
 import shelve
 import json
-
+import bs4
+import musicbrainzngs
 
 class Database:
     ''' Database format - songs
@@ -91,17 +95,71 @@ class Database:
 class Song:
     #When a song is created, mutagen fills in the meta data information
     def __init__(self, root, file):
+
+        #we create a mutagen file object for the file
         self.ms = mutagen.File(open(os.path.join(root, file), 'rb'), easy=True)
-        self.title = self.ms['title'][0]
-        self.artist = self.ms['artist'][0]
-        self.album = self.ms['album'][0]
+        
+        #we attempt to read metaData from the file
+        try:
+            self.title = self.ms['title'][0]
+        except:
+            self.title = file
+        try:
+            self.artist = self.ms['artist'][0]
+        except:
+            self.artist = ''
+        try:
+            self.album = self.ms['album'][0]
+        except:
+            self.album = ''
+
         self.path = os.path.join(root, file)
         self.filename = file
+        #the following two attributes are only used if the user looks for album artwork, and MBID will only happen on the first song of every album.
+        self.MBID = None
+        self.artworkPath = ''
         #self.identifier = re.sub(r'[^A-Za-z0-9]', '', self.title + self.artist + self.album, )
 
     # returns the songs meta data as a dictionary
     def songToDict(self):
         return {'title' : self.title, 'artist' : self.artist, 'album' : self.album, 'id': 0}
+
+    #returns the musicbrainz song id for further use in data lookups
+    def getMusicBrainzReleaseID(self):
+        #Here we setup our useragent for the webqueries 
+        musicbrainzngs.set_useragent('CS3030MusicApp', 'V0.2')
+
+        #we construct a query string from existing metadata
+        if(self.album != '' and self.artist != ''):
+            temp = '{0} AND artist:{1}'.format(self.album, self.artist)
+        elif(self.album != ''):
+            temp = '"{}"'.format(self.album)
+        else:
+            print('Insufficient MetaData for {}'.format(self.filename))
+            return ''
+
+        #if there is enough information to create a viable query string, we search the musicBrainz database
+        results = musicbrainzngs.search_releases(query=temp, limit=50)
+        
+        #if any of the results are produced by the same artist, the id is saved
+        for release in results['release-list']:
+            #we try to get a succesful response from the database without any HTTP errors
+            try:
+                musicbrainzngs.get_image_front(release['id'])
+                hasImage = True
+            #if it doesn't work we move on to the next result
+            except:
+                hasImage = False
+
+            if(release['artist-credit-phrase'] == self.artist and hasImage):
+                print('Image match found!')
+                return release['id']
+
+        #if nothing is returned we print to a notification to console
+        print('No viable database results available for {}'.format(self.album))
+        return ''
+    
+
 
 
 #The library houses all the data and methods needed for manipulating the library
@@ -115,10 +173,10 @@ class Library:
         self.update()
         
 
-
     #The update method looks through the home directory and populates a dictionary of contents
     def update(self):
         self.songs = []
+
         #We walk through the directories and parse through each file
         for root, dirs, files in os.walk(self.homeDirectory):
             for file in files:
@@ -127,7 +185,9 @@ class Library:
                 if(temp != None):
                     self.songs.append(Song(root, file))
 
+
     #The organize method will move all files into a typical artist based directory organization
+    #DO NOT RUN THIS AFTER ALBUM ARTWORK DIRECTORIES HAVE BEEN CREATED
     def organize(self):
         print('Reorganizing library directories')
 
@@ -172,7 +232,44 @@ class Library:
         data.closeDatabase()
 
         print('Finished Reoganization...')
+
+    #This method will look up the album artwork for each of the folders without an existing photo from the MB database
+    def getAlbumArtwork(self):
+        #notifying the user
+        print('Searching Music Brainz database for album artwork\n This could take several minutes...')
+        for song in self.songs:
+           
+            artworkFolder = os.path.join(song.path.rstrip(song.filename), 'artwork')
+            song.artworkPath = os.path.join(artworkFolder, song.album + '.jpg')
+
+            #if album artwork already exists, we continue to the next song
+            if(not os.path.exists(artworkFolder)):
+                os.mkdir(artworkFolder)
+            
+            if(not os.path.exists(song.artworkPath)):
+                print('Searching: {}'.format(song.album))
+                #we first initiate a search query to find the database id for the album in question
+                song.MBID = song.getMusicBrainzReleaseID()
+                if(song.MBID != ''):
+                    #then we lookup the artwork using the song's release id and download the raw data
+                    try:
+                        print('Downloading the image file to {}'.format(song.artworkPath))
+                        rawAlbumArt = musicbrainzngs.get_image_front(song.MBID)
+                        #we open a .jpg file and write the binary data to the file
+                        file = open(song.artworkPath, 'wb')
+                        file.write(rawAlbumArt)
+                        file.close()
+                    except Exception as ex:
+                        print('Problems downloading artwork: {}'.format(ex))
+                        continue
+                
+
         
+
+
+
+
+
 
 #Temporary user input through the command line
 directoryInput = input('Please enter the absolute pathway to your music library: ')
@@ -183,6 +280,12 @@ print('Would you like to organize your library?  Y or N')
 answer = input()
 if(answer == 'Y' or answer == 'y'):
     myLibrary.organize()
-    answer = 0
+    answer = ''
+
+print('Would you like to search for album artwork online? Y or N')
+answer = input()
+if(answer == 'Y' or answer == 'y'):
+    myLibrary.getAlbumArtwork()
+    answer = ''
 else:
     print('Program Finished...')
