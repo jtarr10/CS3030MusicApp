@@ -25,10 +25,12 @@ Features Implemented:
 2.Interface with Music Brainz Database
     a. getAlbumArtwork method populates all possible album folders with available online album artwork files
     b. getMusicBrainzReleaseID method will search Music Brainz database for the correct album id. This is stored in song object's MBID attribute and used to look up the album using MB functions.
+    c. updateMetaData metod will lookup a recording id given and change the file's metadata to the database stats
 '''
 
 
 import mutagen
+from mutagen.mp4 import MP4
 import os
 import re
 import shutil
@@ -36,8 +38,10 @@ import shelve
 import json
 import bs4
 import musicbrainzngs
+import acoustid
+import chromaprint
 
-
+#This is the API key for the acoutsicid API calls
 acousticAPIKey = 'FCX67RczyA'
 
 class Database:
@@ -100,8 +104,7 @@ class Song:
     def __init__(self, root, file):
 
         #we create a mutagen file object for the file
-        self.ms = mutagen.File(open(os.path.join(root, file), 'rb'), easy=True)
-        
+        ms = mutagen.File(os.path.join(root, file), easy=True)
         #we attempt to read metaData from the file
         try:
             self.title = self.ms['title'][0]
@@ -115,6 +118,8 @@ class Song:
             self.album = self.ms['album'][0]
         except:
             self.album = ''
+        
+        ms.save()
 
         self.path = os.path.join(root, file)
         self.filename = file
@@ -127,10 +132,41 @@ class Song:
     def songToDict(self):
         return {'title' : self.title, 'artist' : self.artist, 'album' : self.album, 'id': 0}
 
+    def setMetaData(self, newTitle='', newArtist='', newAlbum=''):
+        #if any of the parameters are not used in the function call, we set them to what they already are
+        if(newTitle == ''):
+            newTitle = self.title
+        if(newArtist == ''):
+            newArtist == self.artist
+        if(newAlbum == ''):
+            newAlbum == self.album
+
+        #we open a mutagen version of the song object
+        ms = mutagen.File(self.path, easy=True)
+
+        if(not isinstance(ms, MP4)):
+            ms['title'] = newTitle
+            ms['artist'] = newArtist
+            ms['album'] = newAlbum
+        else:
+            print('Itunes overlord does not approve of you messing with their files: {}'.format(self.path))
+
+        ms.save(self.path)
+        print('File info updated...')
+        
+
+    #this function will lookup the acousticid from an audio fingerprint and then set the related database metadata
+    def updateMetaData(self, musicBrainzId):
+        #we look up the song and download the dictionary of recording stats
+        musicbrainzngs.set_useragent('CS3030MusicApp', 'V0.5')
+        result = musicbrainzngs.get_recording_by_id(musicBrainzId)
+        #then we call the metadata update function to complete the process
+        self.setMetaData(result['title'], result['artists'][0], result['releases'][0])
+
     #returns the musicbrainz song id for further use in data lookups
     def getMusicBrainzReleaseID(self):
         #Here we setup our useragent for the webqueries 
-        musicbrainzngs.set_useragent('CS3030MusicApp', 'V0.2')
+        musicbrainzngs.set_useragent('CS3030MusicApp', 'V0.5')
 
         #we construct a query string from existing metadata
         if(self.album != '' and self.artist != ''):
@@ -290,11 +326,4 @@ if(answer == 'Y' or answer == 'y'):
     myLibrary.organize()
     answer = ''
 
-print('Would you like to search for album artwork online? Y or N')
-answer = input()
-if(answer == 'Y' or answer == 'y'):
-    myLibrary.getAlbumArtwork()
-    answer = ''
-    print('Program Finished...')
-else:
-    print('Program Finished...')
+
