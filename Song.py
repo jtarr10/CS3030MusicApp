@@ -36,8 +36,9 @@ class Song:
         #self.identifier = re.sub(r'[^A-Za-z0-9]', '', self.title + self.artist + self.album, )
 
     # returns the songs meta data as a dictionary
+    # add the song attributes that you want in the data base here
     def songToDict(self):
-        return {'title' : self.title, 'artist' : self.artist, 'album' : self.album, 'id': 0}
+        return {'title': self.title, 'artist' : self.artist, 'album' : self.album, 'id': 0, 'artwork': self.artworkPath}
 
     def setMetaData(self, newTitle='', newArtist='', newAlbum=''):
         #if any of the parameters are not used in the function call, we set them to what they already are

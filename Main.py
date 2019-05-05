@@ -21,7 +21,7 @@ Planned Features:
 Features Implemented:
 1. File Organizer: The Library class has an organize function that will organize the file directory given as the home with the artist and albums.
     a. Organizing the File directory and saving the final location
-    b. Library Stat Database Created
+    b. Library Database Created
 2.Interface with Music Brainz Database
     a. getAlbumArtwork method populates all possible album folders with available online album artwork files
     b. getMusicBrainzReleaseID method will search Music Brainz database for the correct album id and returns it
@@ -30,34 +30,16 @@ Features Implemented:
 '''
 
 
+from Command import MLMPrompt
 
 
+# startup message
+print("Enter commands into the command-line interpreter to get started.")
+print("Use the 'help' command if you run into problems.")
+print("Use the 'setup' command to run the default library setup")
 
-from Song import Song
-from Library import Library
-from Database import Database
-
-
-#Temporary user input through the command line
-directoryInput = input('Please enter the absolute pathway to your music library: ')
-myLibrary = Library(directoryInput)
-
-print('Library Contains: {} songs'.format(len(myLibrary.songs)))
-print('Would you like to organize your library?  Y or N')
-answer = input()
-if(answer == 'Y' or answer == 'y'):
-    myLibrary.organize()
-    answer = ''
-print('Would you like to look up information for your unlabled files? (Y or N): ')
-answer = input()
-if(answer == 'Y' or answer == 'y'):
-    myLibrary.updateUnlabeledFiles()
-    answer = ''
-print('Would you like to look up album artwork for your library? (Y or N)')
-answer = input()
-if(answer == 'Y' or answer == 'y'):
-    myLibrary.getAlbumArtwork()
-    answer = ''
-    print('Program Finished...')
-else:
-    print('Program Finished...')
+# command line shell interaction
+if __name__ == '__main__':
+    prompt = MLMPrompt()
+    prompt.prompt = '[MLM] >> '
+    prompt.cmdloop('Starting Music Library Manager (MLM)')

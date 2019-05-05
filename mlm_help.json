@@ -1,0 +1,7 @@
+{
+  "help_text": {
+    "help": "This is the help command. Usage: help <topic> | help",
+    "commands": "Lists all available commands. Use help <command> to see usage information",
+    "ui": "Starts the MLM GUI player"
+  }
+}

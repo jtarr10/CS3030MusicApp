@@ -11,16 +11,18 @@ from Song import Song
 class Library:
 
     def __init__(self, homeDir, filePattern='(.*)(.mp3|.flac|.wav|.ogg|.m4a|.m4b|.m4p|.mp4)$'):
-        self.homeDirectory = homeDir
+        self.dataBase = Database(homeDir)
+        self.homeDirectory = self.dataBase.dataFile['location']
         self.songFileRE = re.compile(filePattern)
         self.artworkDirRE = re.compile('^(.*)--$')
         self.songs = []
+
         print('Scanning Files in Library...')
         self.update()
         
 
     #The update method looks through the home directory and populates a dictionary of contents
-    def update(self):
+    def update(self, trgtdatabase=False):
         self.songs = []
 
         #We walk through the directories and parse through each file
@@ -29,15 +31,15 @@ class Library:
                 temp = self.songFileRE.search(file)
                 #if the file is of the proper type, we create a new song object and append it to the contents of the library
                 if(temp != None):
-                    self.songs.append(Song(root, file))
+                    if trgtdatabase:
+                        self.dataBase.addSongToDatabase(Song(root, file))
 
+                    self.songs.append(Song(root, file))
 
 
     #The organize method will move all files into a typical artist based directory organization
     def organize(self):
         print('Reorganizing library directories')
-
-        data = Database(self.homeDirectory)
         
         #move all files to the root directory
         for song in self.songs:
@@ -75,14 +77,11 @@ class Library:
 
             #move the song to the proper location and move on to the next song
             shutil.move(song.path, songDir)
-            # add song to database
-            data.addSongToDatabase(song)
-        
-        #Finally update the song list to reflect the final directory layout
-        self.update()
 
-        # release the database
-        data.closeDatabase()
+        #Finally update the song list and database to reflect the final directory layout
+        self.update()
+        self.update(True)
+
 
         print('Finished Reoganization...')
 
@@ -128,6 +127,7 @@ class Library:
                     file = open(song.artworkPath, 'wb')
                     file.write(b'NO ARTWORK FOUND')
                     file.close()
+            self.dataBase.updateEntry(song)
                 
 
     #this method will go through all songs in the scanned library and try to find metadata, if there is not enough information to find anything the user will be prompted to enter it
