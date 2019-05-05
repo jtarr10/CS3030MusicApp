@@ -1,7 +1,9 @@
 import mutagen
-import os
+import os, stat
 import musicbrainzngs
+from re import sub
 from mutagen.mp4 import MP4
+from pprint import pprint as pp
 
 
 
@@ -10,6 +12,10 @@ from mutagen.mp4 import MP4
 class Song:
     #When a song is created, mutagen fills in the meta data information
     def __init__(self, root, file):
+        # if file is read-only allow writes
+        filePerm = os.path.join(root, file)
+        if not os.access(filePerm, os.W_OK):
+            os.chmod(filePerm, stat.S_IWRITE)
         #we create a mutagen file object for the file
         ms = mutagen.File(os.path.join(root, file), easy=True)
         #we attempt to read metaData from the file
@@ -22,7 +28,7 @@ class Song:
         except:
             self.artist = ''
         try:
-            self.album = ms['album'][0]
+            self.album = sub(r'[<>\\:/"|?*]', '', ms['album'][0])
         except:
             self.album = ''
         
@@ -74,16 +80,52 @@ class Song:
         #then we call the metadata update function to complete the process
         self.setMetaData(self.title, result['release']['artist-credit-phrase'], result['release']['title'])
 
+    # this function will present the user a choice of recordings from which to extract metadata
+    def updateMetaDataInteractive(self):
+
+        #we look up the song and download the dictionary of recording stats
+        musicbrainzngs.set_useragent('CS3030MusicApp', 'V0.5')
+
+        if (self.artist != '' or self.title != ''):
+            temp = '{0} AND artist:{1}'.format(self.title.replace(' ', '_'), self.artist)
+
+        results = musicbrainzngs.search_recordings(query=temp, limit=25)
+        lineNum = 1
+        releaseList = []
+        for release in results['recording-list']:
+            try:
+                print(str(lineNum) + '\tTitle: ' + release['title'],
+                      'Artist: ' + release['artist-credit'][0]['artist']['name'], 'ID: ' + release['id'],
+                      'Album: ' + release['release-list'][0]['title'])
+                lineNum += 1
+                releaseList.append(release)
+            except Exception as e:
+                pass
+
+        userInput = input("Which song matches your file? ")
+        try:
+            userInput = int(userInput)
+            result = releaseList[int(userInput) - 1]
+            self.setMetaData(result['title'], result['artist-credit-phrase'], result['release-list'][0]['title'])
+        except Exception as e:
+            print('Choice not found.')
+
     #returns the musicbrainz song id for further use in data lookups
-    def getMusicBrainzReleaseID(self):
+    def getMusicBrainzReleaseID(self, imageSearch=False):
         #Here we setup our useragent for the webqueries 
         musicbrainzngs.set_useragent('CS3030MusicApp', 'V0.5')
 
         #we construct a query string from existing metadata
         if(self.album != '' and self.artist != ''):
             temp = '{0} AND artist:{1}'.format(self.album, self.artist)
+            print('aa')
         elif(self.album != ''):
             temp = '"{}"'.format(self.album)
+            print('ab')
+        elif(self.artist != '' and self.title != ''):
+            temp = '{0} AND artist:{1}'.format(self.title.replace(' ', '_'), self.artist)
+            print('ac')
+            lastChance = True
         else:
             print('Insufficient MetaData for {}'.format(self.filename))
             return ''
@@ -91,6 +133,7 @@ class Song:
         print('Looking for online profile for {}'.format(self.title))
         #if there is enough information to create a viable query string, we search the musicBrainz database
         results = musicbrainzngs.search_releases(query=temp, limit=50)
+
         
         #if any of the results are produced by the same artist, the id is saved
         for release in results['release-list']:
@@ -106,6 +149,12 @@ class Song:
                 print('Release match found!')
                 return release['id']
 
-        #if nothing is returned we print to a notification to console
-        print('No viable database results available for {}'.format(self.album))
-        return ''
+        # If nothing is found in releases try recordings but not if the function is called for album art
+        print('Last try. Is the file in this list.')
+        if not imageSearch:
+            self.updateMetaDataInteractive()
+            return ''
+        else:
+            #if nothing is returned we print to a notification to console
+            print('No viable database results available for {}'.format(self.album))
+            return ''

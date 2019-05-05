@@ -108,7 +108,7 @@ class Library:
             if(not os.path.exists(song.artworkPath)):
                 print('Searching: {}'.format(song.album))
                 #we first initiate a search query to find the database id for the album in question
-                song.MBID = song.getMusicBrainzReleaseID()
+                song.MBID = song.getMusicBrainzReleaseID(imageSearch=True)
                 #If the song search comes back with an ID we continue
                 if(song.MBID != ''):
                     #then we lookup the artwork using the song's release id and download the raw data
