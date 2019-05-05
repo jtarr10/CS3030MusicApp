@@ -54,17 +54,7 @@ class MLMPrompt(Cmd):
         # status
         # label
         # print - songs, albums, artist
-        # Here we setup our useragent for the webqueries
-        musicbrainzngs.set_useragent('CS3030MusicApp', 'V0.5')
-
-        temp = '{0} AND artist:{1}'.format('Birnie Bouzle / When Will We Be Married Molly', 'Darby O\'Gill')
-
-        # if there is enough information to create a viable query string, we search the musicBrainz database
-        results = musicbrainzngs.search_recordings(query=temp, limit=50)
-
-        # if any of the results are produced by the same artist, the id is saved
-        for release in results['recording-list']:
-            print(release)
+        pass
 
     def do_setup(self, args):
         # Temporary user input through the command line
