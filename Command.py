@@ -11,6 +11,11 @@ from Database import Database
 
 
 class MLMPrompt(Cmd):
+
+    def __init__(self):
+        super(MLMPrompt, self).__init__()
+        self.do_setup('')
+
     """command functions"""
     def do_help(self,args):
         arguments = args.split()
@@ -18,25 +23,31 @@ class MLMPrompt(Cmd):
         helpDict = json.load(helpFile)
         validHelp = helpDict['help_text']
         if not args:
-            print('all cmds')
+            self.do_commands(args)
         elif arguments[0] in validHelp:
             print(helpDict['help_text'][arguments[0]])
         else:
             print('\"{}\" is not a valid help topic'.format(arguments[0]))
 
+
     def do_commands(self,args):
         # TODO create list of commands
-        print('''help\ncommand\nimport\nlist\nls\nquit''')
+        print('''help\ncommands\norganize\ngetMetaData\ngetAlbumArtwork\nlist\nls\nquit''')
 
+    def do_organize(self, args):
+        self.myLibrary.organize()
 
-    def do_import(self, args):
-        # TODO import commands
-        print('imports song into the music library manager')
+    def do_getMetaData(self, args):
+        self.myLibrary.updateUnlabeledFiles()
+
+    def do_getAlbumArtwork(self, args):
+        self.myLibrary.getAlbumArtwork()
 
     def do_quit(self, args):
         """Quits the program."""
         print("Quitting.")
-        raise SystemExit
+        self.myLibrary.database.closeDatabase()
+        sys.exit(0)
 
 
     def do_list(self, args):
@@ -58,29 +69,17 @@ class MLMPrompt(Cmd):
 
     def do_setup(self, args):
         # Temporary user input through the command line
-        directoryInput = input('Please enter the absolute pathway to your music library: ')
-        myLibrary = Library(directoryInput)
+        try:
+            dirFile = open('mlm.config', 'r')
+            dir = dirFile.readline()
+            self.myLibrary = Library(dir)
+        except:
+            directoryInput = input('Please enter the absolute pathway to your music library: ')
+            self.myLibrary = Library(directoryInput)
+        
+        
 
-        print('Library Contains: {} songs'.format(len(myLibrary.songs)))
-        print('Would you like to organize your library?  Y or N')
-        answer = input()
-        if (answer == 'Y' or answer == 'y'):
-            myLibrary.organize()
-            answer = ''
-        print('Would you like to look up information for your unlabled files? (Y or N): ')
-        answer = input()
-        if (answer == 'Y' or answer == 'y'):
-            myLibrary.updateUnlabeledFiles()
-            answer = ''
-        print('Would you like to look up album artwork for your library? (Y or N)')
-        answer = input()
-        if (answer == 'Y' or answer == 'y'):
-            myLibrary.getAlbumArtwork()
-            answer = ''
-            print('Program Finished...')
-        else:
-            print('Program Finished...')
-        myLibrary.dataBase.closeDatabase()
+        print('Library Contains: {} songs'.format(len(self.myLibrary.songs)))
 
     def do_db(self, args):
         """Temporary full database print"""

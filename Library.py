@@ -33,7 +33,7 @@ class Library:
                 if(temp != None):
                     if trgtdatabase:
                         self.dataBase.addSongToDatabase(Song(root, file))
-
+                    
                     self.songs.append(Song(root, file))
 
 

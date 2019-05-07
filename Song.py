@@ -118,14 +118,10 @@ class Song:
         #we construct a query string from existing metadata
         if(self.album != '' and self.artist != ''):
             temp = '{0} AND artist:{1}'.format(self.album, self.artist)
-            print('aa')
         elif(self.album != ''):
             temp = '"{}"'.format(self.album)
-            print('ab')
         elif(self.artist != '' and self.title != ''):
             temp = '{0} AND artist:{1}'.format(self.title.replace(' ', '_'), self.artist)
-            print('ac')
-            lastChance = True
         else:
             print('Insufficient MetaData for {}'.format(self.filename))
             return ''
@@ -155,6 +151,6 @@ class Song:
             self.updateMetaDataInteractive()
             return ''
         else:
-            #if nothing is returned we print to a notification to console
+            #if nothing is returned we print a notification to console
             print('No viable database results available for {}'.format(self.album))
             return ''

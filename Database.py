@@ -86,6 +86,7 @@ class Database:
             self.dataFile['lastID'] = update
         else:
             self.updateEntry(songObj)
+        self.dataFile.sync()
 
     def updateEntry(self,songObj):
         update = self.dataFile['songs']
@@ -93,6 +94,8 @@ class Database:
         dataDict['id'] = update[songObj.path]['id']
         update[songObj.path] = dataDict
         self.dataFile['songs'] = update
+        self.dataFile.sync()
+        self.playLists.sync()
 
     # removes a song from the database given a songs identifier (path)
     def removeFromDatabase(self, path):

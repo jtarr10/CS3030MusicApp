@@ -9,7 +9,6 @@ mutagen - audio file metadata library
 
 
 Planned Features:
-1. File organization - Renaming, Categorizing, Directory manipulation
     a. Organizing the File directory and saving the final location
     b. File Parsing/ Dictionary Population
 2. Web scraping - Album artwork, Lyrics, Artist information
