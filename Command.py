@@ -8,6 +8,7 @@ import pprint
 from Song import Song
 from Library import Library
 from Database import Database
+from Player import mlmPlayer
 
 
 class MLMPrompt(Cmd):
@@ -15,6 +16,16 @@ class MLMPrompt(Cmd):
     def __init__(self):
         super(MLMPrompt, self).__init__()
         self.do_setup('')
+        self.player = None
+
+    def do_setup(self, args):
+        try:
+            dirFile = open('mlm.config', 'r')
+            dir = dirFile.readline()
+            self.myLibrary = Library(dir)
+        except:
+            directoryInput = input('Please enter the absolute pathway to your music library: ')
+            self.myLibrary = Library(directoryInput)
 
     """command functions"""
     def do_help(self,args):
@@ -67,28 +78,28 @@ class MLMPrompt(Cmd):
         # print - songs, albums, artist
         pass
 
-    def do_setup(self, args):
-        # Temporary user input through the command line
-        try:
-            dirFile = open('mlm.config', 'r')
-            dir = dirFile.readline()
-            self.myLibrary = Library(dir)
-        except:
-            directoryInput = input('Please enter the absolute pathway to your music library: ')
-            self.myLibrary = Library(directoryInput)
-        
-        
 
         print('Library Contains: {} songs'.format(len(self.myLibrary.songs)))
 
     def do_db(self, args):
         """Temporary full database print"""
-        dataPath = input("Enter database location:")
-        dataPath = r'C:\Users\Mitchell\Music\test' if not dataPath else dataPath
-        data = Database(dataPath)
-        pprint.pprint(data.dataFile['songs'])
-        a = data.returnData()
-        pprint.pprint(a)
+        self.myLibrary.dataBase.searchDatabase('camo')
+
+    def do_play(self, args):
+        args = self.myLibrary.dataBase.searchDatabase(args)
+        print(args)
+        self.player = mlmPlayer(args, 1)
+        self.player.play_song()
+
+
+    def do_skip(self, args):
+        # FIXME have not figured out how skip works
+        if self.player:
+            seek = int(args)
+            self.player.jump(seek)
+
+    def do_stop(self, args):
+        self.player.stop()
 
 
     """helper functions"""
