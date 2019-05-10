@@ -1,5 +1,6 @@
 import shelve
 import os
+import re
 
 """ Database format - songs
     {'location': string,
@@ -104,8 +105,16 @@ class Database:
             del data[path]
             self.dataFile['songs'] = data
 
-    def searchDatabase(self, term, key=''):
-        pass
+    def searchDatabase(self, term, key='title'):
+        # basic search
+        data = data = self.dataFile['songs']
+        searchable = ['title', 'artist', 'album']
+        term = term.lower()
+        term = re.sub(r'[\W_]', '', term)
+        for item in data:
+            for attr in searchable:
+                if term in re.sub(r'[\W_]', '', data[item][attr].lower()):
+                    return item
 
 
     def listData(self, key='songs', dataFilter='title', key2='title'):
@@ -123,7 +132,7 @@ class Database:
             data = self.dataFile[key]
             for song in data:
                 dataList.append(data[song][dataFilter])
-                dataList.sort()
+            dataList.sort()
             return dataList
         if key == 'location':
             data = self.dataFile[key]
@@ -135,4 +144,3 @@ class Database:
         self.dataFile.close()
         self.playLists.close()
 
-    # TODO add way to update songs in database
