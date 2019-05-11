@@ -9,6 +9,7 @@ from Song import Song
 from Library import Library
 from Database import Database
 from Player import mlmPlayer
+from Directory import Directory
 
 
 class MLMPrompt(Cmd):
@@ -43,7 +44,7 @@ class MLMPrompt(Cmd):
 
     def do_commands(self,args):
         # TODO create list of commands
-        print('''help\ncommands\norganize\ngetMetaData\ngetAlbumArtwork\nlist\nls\nquit''')
+        print('''help\ncommands\norganize\ngetMetaData\ngetAlbumArtwork\nprintDirectory\nlist\nls\nquit''')
 
     def do_organize(self, args):
         self.myLibrary.organize()
@@ -54,10 +55,17 @@ class MLMPrompt(Cmd):
     def do_getAlbumArtwork(self, args):
         self.myLibrary.getAlbumArtwork()
 
+    #use this function by calling printDirectory <savePath>
+    def do_printDirectory(self, args):
+        
+        myDir = Directory(self.myLibrary.songs)
+        myDir.print(args)
+     
+
     def do_quit(self, args):
         """Quits the program."""
         print("Quitting.")
-        self.myLibrary.database.closeDatabase()
+        self.myLibrary.dataBase.closeDatabase()
         sys.exit(0)
 
 

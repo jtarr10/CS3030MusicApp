@@ -1,4 +1,5 @@
 import pyglet.media as media
+
 class mlmPlayer:
     def __init__(self, path, volume):
         # Song Playing Song
