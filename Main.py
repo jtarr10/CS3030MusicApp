@@ -21,11 +21,18 @@ Features Implemented:
 1. File Organizer: The Library class has an organize function that will organize the file directory given as the home with the artist and albums.
     a. Organizing the File directory and saving the final location
     b. Library Database Created
-2.Interface with Music Brainz Database
+2. Interface with Music Brainz Database
     a. getAlbumArtwork method populates all possible album folders with available online album artwork files
     b. getMusicBrainzReleaseID method will search Music Brainz database for the correct album id and returns it
     c. updateMetaData metod will lookup a recording id given and change the file's metadata to the database stats (it is required that at least the album name is set)
     d. updateUnlabeledFiles method from the library object will look through all songs and attempt to fill in the title, artist, and release name with the help of the user and the internet
+3. Song Player
+    a. play command will play given song name if it is in the database
+    b. pause command will pause current song in the player
+    c. stop will stop the current song from playing
+    d. resume will resume current song
+4. Directory Printer
+    a. printDirectory take in a pathway and prints a .docx file at the given location with an organized list of the library's songs
 '''
 
 
