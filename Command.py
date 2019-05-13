@@ -1,13 +1,7 @@
 from cmd import Cmd
 import json
 import sys
-import musicbrainzngs
-import shelve
-import pprint
-
-from Song import Song
 from Library import Library
-from Database import Database
 from Player import mlmPlayer
 from Directory import Directory
 
@@ -16,10 +10,16 @@ class MLMPrompt(Cmd):
 
     def __init__(self):
         super(MLMPrompt, self).__init__()
-        self.do_setup('')
+        self.setup('')
         self.player = None
+        try:
+            helpFile = open("mlm_help.json", 'r')
+            self.helpDict = json.load(helpFile)
+        except:
+            print("Help file not found. Please redownload \"mlm_help.json\"")
+            self.helpDict = None
 
-    def do_setup(self, args):
+    def setup(self, args):
         try:
             dirFile = open('mlm.config', 'r')
             dir = dirFile.readline()
@@ -28,31 +28,36 @@ class MLMPrompt(Cmd):
             directoryInput = input('Please enter the absolute pathway to your music library: ')
             self.myLibrary = Library(directoryInput)
 
-    """command functions"""
     def do_help(self,args):
-        arguments = args.split()
-        helpFile = open("mlm_help.json", 'r')
-        helpDict = json.load(helpFile)
-        validHelp = helpDict['help_text']
-        if not args:
-            self.do_commands(args)
-        elif arguments[0] in validHelp:
-            print(helpDict['help_text'][arguments[0]])
+        # This command function helps the user understand the various features of the program
+        if self.helpDict:
+            arguments = args.split()
+            validHelp = self.helpDict['help_text'].keys()
+            print(validHelp)
+            if not args:
+                self.do_commands(args)
+            elif arguments[0] in validHelp:
+                print(self.helpDict['help_text'][arguments[0]])
+            else:
+                print('\"{}\" is not a valid help topic'.format(arguments[0]))
         else:
-            print('\"{}\" is not a valid help topic'.format(arguments[0]))
-
+            print("Help not currently available.")
 
     def do_commands(self,args):
-        # TODO create list of commands
-        print('''help\ncommands\norganize\ngetMetaData\ngetAlbumArtwork\nprintDirectory\nlist\nls\nquit''')
+        # displays a list of commands
+        for item in self.helpDict['help_text'].keys():
+            print(item)
 
     def do_organize(self, args):
+        # initiates the library's organize feature
         self.myLibrary.organize()
 
     def do_getMetaData(self, args):
+        # initiates the library's find metadata feature
         self.myLibrary.updateUnlabeledFiles()
 
     def do_getAlbumArtwork(self, args):
+        # initiates the library's find artwork feature
         self.myLibrary.getAlbumArtwork()
 
     #use this function by calling printDirectory <savePath>
@@ -60,55 +65,46 @@ class MLMPrompt(Cmd):
         
         myDir = Directory(self.myLibrary.songs)
         myDir.print(args)
-     
 
     def do_quit(self, args):
-        """Quits the program."""
-        print("Quitting.")
+        # quits the program.
+        print("Closing MLM.")
         self.myLibrary.dataBase.closeDatabase()
         sys.exit(0)
 
-
     def do_list(self, args):
-        # TODO add list command logic
-        """Lists the library structure"""
-        """Options: artist, album"""
         print('this will print your library structure')
 
     def do_ls(self, args):
-        """Alias for list command"""
+        # alias for list command
         self.do_list(args)
 
-    def do_library(self, args):
-        # TODO add library command logic
-        # status
-        # label
-        # print - songs, albums, artist
-        pass
-
-
-        print('Library Contains: {} songs'.format(len(self.myLibrary.songs)))
-
-    def do_db(self, args):
-        """Temporary full database print"""
-        self.myLibrary.dataBase.searchDatabase('camo')
-
     def do_play(self, args):
-        args = self.myLibrary.dataBase.searchDatabase(args)
-        print(args)
-        self.player = mlmPlayer(args, 1)
+        songDict = self.myLibrary.dataBase.searchDatabase(args)
+        print('Match Found at: ', songDict['path'])
+        print(songDict['title'], 'Is now playing.')
+
+        if self.player:
+            self.do_stop('')
+            self.player = None
+
+        self.player = mlmPlayer(songDict['path'], 1)
         self.player.play_song()
 
-
-    def do_skip(self, args):
-        # FIXME have not figured out how skip works
-        if self.player:
-            seek = int(args)
-            self.player.jump(seek)
+    # def do_skip(self, args):
+    #     # FIXME have not figured out how skip works
+    #     if self.player:
+    #         seek = int(args)
+    #         self.player.jump(seek)
 
     def do_stop(self, args):
+        # stops the currently playing song
         self.player.stop()
 
+    def do_pause(self, args):
+        # stops the currently playing song
+        self.player.pause()
 
-    """helper functions"""
-
+    def do_resume(self, args):
+        # stops the currently playing song
+        self.player.resume()

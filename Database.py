@@ -22,7 +22,7 @@ import re
      }
 """
 
-""" Database format - playlist
+""" Database format - playlist - not yet implemented
 {playlistname : id}
 """
 
@@ -53,7 +53,7 @@ class Database:
         try:
             dataFile = shelve.open(self.data)
             playLists = shelve.open(self.pList)
-            throwAway = dataFile['lastID']
+            dataFile['lastID']
         except Exception as e:
             dataFile['lastID'] = 0
             dataFile['location'] = self.location
@@ -107,26 +107,18 @@ class Database:
 
     def searchDatabase(self, term, key='title'):
         # basic search
-        data = data = self.dataFile['songs']
+        data = self.dataFile['songs']
         searchable = ['title', 'artist', 'album']
         term = term.lower()
         term = re.sub(r'[\W_]', '', term)
         for item in data:
             for attr in searchable:
                 if term in re.sub(r'[\W_]', '', data[item][attr].lower()):
-                    return item
+                    songDict = dict(self.dataFile['songs'][item])
+                    songDict['path'] = item
+                    return songDict
 
-
-    def listData(self, key='songs', dataFilter='title', key2='title'):
-        if key == 'songs':
-            data = self.dataFile[key]
-            for song in data:
-                print(data[song][dataFilter])
-        if key == 'location':
-            data = self.dataFile[key]
-            print(data)
-
-    def returnData(self, key='songs', dataFilter='title', key2='title'):
+    def returnData(self, key='songs', dataFilter='title'):
         dataList = []
         if key == 'songs':
             data = self.dataFile[key]
@@ -138,9 +130,13 @@ class Database:
             data = self.dataFile[key]
             print(data)
 
+    def listData(self, key='songs', dataFilter='title'):
+        printData = self.returnData(self, key=key, dataFilter=dataFilter)
+        for item in printData:
+            print(item)
 
-    # closes the database files
     def closeDatabase(self):
+        # closes the database files
         self.dataFile.close()
         self.playLists.close()
 

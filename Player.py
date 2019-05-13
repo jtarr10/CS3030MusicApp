@@ -9,6 +9,7 @@ class mlmPlayer:
         # pyglet Media Player
         self.player = media.Player()
         self.player.volume = volume
+        self.songPosition = 0
 
     def jump(self, time):
         try:
@@ -20,31 +21,34 @@ class mlmPlayer:
 
     def pause(self):
         self.player.pause()
+        self.songPosition = self.player.time
         return
 
     def play(self):
         self.player.play()
         return
 
+    def resume(self):
+        if self.songPosition != 0:
+            self.play()
+            self.player.seek(self.songPosition)
+        return
+
     def stop(self):
         self.reset_player()
+        self.songPosition = 0
         return
 
-    def volume_(self, *args, **kwargs):
-        try:
-            volume = self.volume.get()
-            self.player.volume = volume
-        except:
-            pass
+    def volume(self, volume):
+        self.player.volume = volume
         return
-
 
     def reset_player(self):
         self.player.pause()
         self.player.delete()
         return
 
-    def play_song(self, *args, **kwargs):
+    def play_song(self):
         if self.path:
             try:
                 self.reset_player()

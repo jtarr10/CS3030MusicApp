@@ -2,6 +2,16 @@
   "help_text": {
     "help": "This is the help command. Usage: help <topic> | help",
     "commands": "Lists all available commands. Use help <command> to see usage information",
-    "ui": "Starts the MLM GUI player"
+    "organize": "Lists all available commands. Use help <command> to see usage information",
+    "printDirectory": "Prints a given directory that contains a library to a word document. Usage: printDirectory <savePath>",
+    "getMetaData": "Starts the metadata search utility for songs located in the unlabeled folder. Usage: getMetaData",
+    "getAlbumArtwork": "Starts the album artwork search utility for all albums in the library. Usage: getAlbumArtwork",
+    "quit": "Exits the music library manager program. Usage: quit",
+    "list": "Lists the current library structure. Usage: list | ls",
+    "play": "Plays the song given by a title. Usage: play <songTitle>",
+    "stop": "Stops the currently playing song. Usage: stop",
+    "pause": "Pauses the currently playing song. Usage: pause",
+    "resume": "Resumes the previously paused song from the last position. Usage: resume",
+    "ui": "Not yet implemented"
   }
 }
