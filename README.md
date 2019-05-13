@@ -3,7 +3,7 @@ Music organizer for python
 
 Welcome to our music library manager. To run this program please assure that you have all of the following dependencies installed in your python package directory: mutagen, musicbrainzngs, pyglet, Command, python-docx. 
 
-To run this program, simply run the main.py file and the cmd interface will start. By using the command help followed by the name of the command, you can learn more information of command usage. 
+To run this program, simply run the Main.py file and the cmd interface will start. By using the command help followed by the name of the command, you can learn more information of command usage. 
 
 
 
