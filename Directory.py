@@ -3,6 +3,7 @@ This class is for creating a sorted directory from a given directory.
 '''
 
 from docx import Document
+import os
 
 class Directory:
 
@@ -29,7 +30,7 @@ class Directory:
         #we create a document
         doc = Document()
         #put in a fancy heading 
-        doc.add_heading('Library Directory:', 0)
+        doc.add_heading('My Library Directory:', 0)
         
         #table header setup 
         directory = doc.add_table(rows=1, cols=4)
@@ -49,5 +50,7 @@ class Directory:
             rowCells[2].text = song.artist
             rowCells[3].text = song.album
             counter += 1
-
-        doc.save(path)
+        try:
+            doc.save(os.path.join(path, 'Directory.docx'))
+        except:
+            print('Failed to save file. Please make sure your path is to an existing directory where you wish to save.')
