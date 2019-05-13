@@ -73,7 +73,7 @@ class Library:
             if(not os.path.exists(artistDir)):
                 os.mkdir(artistDir)
             if(not os.path.exists(albumDir)):
-                    os.mkdir(albumDir)
+                os.mkdir(albumDir)
 
             #move the song to the proper location and move on to the next song
             shutil.move(song.path, songDir)
@@ -87,7 +87,6 @@ class Library:
 
     #This method will look up the album artwork for each of the folders without an existing photo from the MB database
     def getAlbumArtwork(self):
-        #notifying the user
         print('Searching Music Brainz database for album artwork\n This could take several minutes...')
         for song in self.songs:
             #we should skip any files that don't have the appropriate metadata
