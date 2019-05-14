@@ -141,7 +141,7 @@ class Song:
             except:
                 hasImage = False
 
-            if(release['title'] == self.album and hasImage):
+            if((release['title'].lower() == self.album.lower()) and hasImage):
                 print('Release match found!')
                 return release['id']
 
