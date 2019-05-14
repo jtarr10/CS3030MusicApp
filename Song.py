@@ -83,6 +83,8 @@ class Song:
     # this function will present the user a choice of recordings from which to extract metadata
     def updateMetaDataInteractive(self):
 
+        print('Last try. Is the file in this list.')
+
         #we look up the song and download the dictionary of recording stats
         musicbrainzngs.set_useragent('CS3030MusicApp', 'V0.5')
 
@@ -130,7 +132,6 @@ class Song:
         #if there is enough information to create a viable query string, we search the musicBrainz database
         results = musicbrainzngs.search_releases(query=temp, limit=50)
 
-        
         #if any of the results are produced by the same artist, the id is saved
         for release in results['release-list']:
             #we try to get a succesful response from the database without any HTTP errors
@@ -146,7 +147,6 @@ class Song:
                 return release['id']
 
         # If nothing is found in releases try recordings but not if the function is called for album art
-        print('Last try. Is the file in this list.')
         if not imageSearch:
             self.updateMetaDataInteractive()
             return ''

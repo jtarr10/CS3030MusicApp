@@ -33,7 +33,6 @@ class MLMPrompt(Cmd):
         if self.helpDict:
             arguments = args.split()
             validHelp = self.helpDict['help_text'].keys()
-            print(validHelp)
             if not args:
                 self.do_commands(args)
             elif arguments[0] in validHelp:
