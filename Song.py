@@ -24,7 +24,7 @@ class Song:
         except:
             self.title = file
         try:
-            self.artist = ms['artist'][0]
+            self.artist = sub(r'[<>\\:/"|?*]', '_', ms['artist'][0])
         except:
             self.artist = ''
         try:
